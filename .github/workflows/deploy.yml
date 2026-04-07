@@ -61,7 +61,7 @@ jobs:
             echo "exists=true" >> $GITHUB_OUTPUT
           else
             echo "exists=false" >> $GITHUB_OUTPUT
-          fi
+          fi 
 
       - name: Create Lambda function
         if: steps.check-lambda-metadata-extractor.outputs.exists == 'false'
