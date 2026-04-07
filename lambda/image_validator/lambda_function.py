@@ -59,4 +59,19 @@ def lambda_handler(event, context):
     #         - print the [INVALID] message: print(f"[INVALID] {key} is not a valid image type")
     #         - raise ValueError to trigger DLQ
 
+    for record in event['Records']:
+        sns_message_string = record['Sns']['Message']
+        s3_event = json.loads(sns_message_string)
+        for s3_event_record in s3_event['Records']:
+            bucket_names = s3_event_record['s3']['bucket']['name']
+            object_key = s3_event_record['s3']['object']['key']
+            if is_valid_image(object_key):
+                print(f"[VALID] {object_key} is a valid image file")
+                filename = object_key.split('/')[-1]
+                s3.copy_object(Bucket={bucket_names}, Key=f"processed/valid/{filename}",
+                    CopySource={'Bucket': {bucket_names}, 'Key': {object_key}})
+            else:
+                print(f"[INVALID] {object_key} is not a valid image type")
+                raise ValueError(f"{object_key} is not a valid image type")
+
     return {'statusCode': 200, 'body': 'validation complete'}

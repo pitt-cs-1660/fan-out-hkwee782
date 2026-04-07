@@ -47,15 +47,38 @@ def lambda_handler(event, context):
     # todo: extract file size from s3_record['s3']['object']['size']
     # todo: extract event time from s3_record['eventTime']
     # todo: print metadata in the required [METADATA] format:
-    #       print(f"[METADATA] File: {key}")
-    #       print(f"[METADATA] Bucket: {bucket}")
-    #       print(f"[METADATA] Size: {size} bytes")
-    #       print(f"[METADATA] Upload Time: {event_time}")
+            # print(f"[METADATA] File: {object_key}")
+            # print(f"[METADATA] Bucket: {bucket_names}")
+            # print(f"[METADATA] Size: {file_size} bytes")
+            # print(f"[METADATA] Upload Time: {event_time}")
     # todo: build a metadata dict with file, bucket, size, upload_time
     # todo: get the filename from the key (e.g. "uploads/test.jpg" -> "test")
     #       hint: use os.path.splitext(key.split('/')[-1])[0]
+
     # todo: write the metadata dict as JSON to s3 at processed/metadata/{filename}.json
     #       hint: s3.put_object(Bucket=bucket, Key=f"processed/metadata/{filename}.json",
     #             Body=json.dumps(metadata), ContentType='application/json')
+
+    for record in event['Records']:
+        sns_message_string = record['Sns']['Message']
+        s3_event = json.loads(sns_message_string)
+        for s3_event_record in s3_event['Records']:
+            bucket_names = s3_event_record['s3']['bucket']['name']
+            object_key = s3_event_record['s3']['object']['key']
+            file_size = s3_event_record['s3']['object']['size']
+            event_time = s3_event_record['eventTime']
+            print(f"[METADATA] File: {object_key}")
+            print(f"[METADATA] Bucket: {bucket_names}")
+            print(f"[METADATA] Size: {file_size} bytes")
+            print(f"[METADATA] Upload Time: {event_time}")
+    metadata = {
+        "file": object_key,
+        "bucket": bucket_names,
+        "size": file_size,
+        "upload_time": event_time
+    }
+    filename = os.path.splitext(object_key.split('/')[-1])[0]
+    s3.put_object(Bucket=bucket_names, Key=f"processed/metadata/{filename}.json",
+                Body=json.dumps(metadata), ContentType='application/json')
 
     return {'statusCode': 200, 'body': 'metadata extracted'}
