@@ -72,7 +72,7 @@ def lambda_handler(event, context):
             print(f"[METADATA] Size: {file_size} bytes")
             print(f"[METADATA] Upload Time: {event_time}")
     metadata = {
-        "file": object_key,
+        "file": object_key, 
         "bucket": bucket_name,
         "size": file_size,
         "upload_time": event_time
